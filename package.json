@@ -1,0 +1,23 @@
+{
+  "name": "level-up",
+  "private": true,
+  "version": "0.0.1",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "turbo": "^1.11.2",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
+  },
+  "packageManager": "pnpm@8.9.0",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
