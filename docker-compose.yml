@@ -18,5 +18,42 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    container_name: level-up-backend
+    environment:
+      - DATABASE_URL=postgres://levelup:levelup@postgres:5432/levelup
+      - PORT=4000
+      - NODE_ENV=development
+    ports:
+      - "4000:4000"
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules
+      - /workspace/packages/backend/node_modules
+    working_dir: /workspace/packages/backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: pnpm start:dev
+
+  frontend:
+    build:
+      context: .
+      dockerfile: packages/frontend/Dockerfile
+    container_name: level-up-frontend
+    ports:
+      - "5173:5173"  # Default Vite port
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules
+      - /workspace/packages/frontend/node_modules
+    working_dir: /workspace/packages/frontend
+    depends_on:
+      - backend
+    command: pnpm dev
+
 volumes:
   level-up-data:

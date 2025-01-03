@@ -12,7 +12,11 @@ import * as schema from './schema';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const connectionString = configService.get<string>('DATABASE_URL');
-        const client = postgres(connectionString);
+        if (!connectionString) {
+          throw new Error('DATABASE_URL is not defined');
+        }
+        
+        const client = postgres(connectionString, { max: 1 });
         return drizzle(client, { schema });
       },
     },

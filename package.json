@@ -9,7 +9,16 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:build": "docker compose build",
+    "docker:logs": "docker compose logs -f",
+    "db:generate": "pnpm --filter @level-up/backend db:generate",
+    "db:migrate": "pnpm --filter @level-up/backend db:migrate",
+    "db:seed": "pnpm --filter @level-up/backend db:seed",
+    "db:studio": "pnpm --filter @level-up/backend db:studio",
+    "start": "pnpm docker:up"
   },
   "devDependencies": {
     "turbo": "^1.11.2",
