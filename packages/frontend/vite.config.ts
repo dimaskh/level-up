@@ -11,6 +11,11 @@ export default defineConfig({
     },
   },
   server: {
+    host: true, // Listen on all addresses
     port: 5173,
+    strictPort: true, // Fail if port is already in use
+    watch: {
+      usePolling: true // Use polling for hot reload in Docker
+    }
   },
 })

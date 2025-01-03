@@ -7,22 +7,24 @@ RUN apt-get update && apt-get install -y \
     procps \
     && rm -rf /var/lib/apt/lists/*
 
-# Install global dependencies
-RUN npm install -g pnpm @nestjs/cli @swc/cli @swc/core
+# Install pnpm and NestJS CLI
+RUN npm install -g pnpm @nestjs/cli
 
-# Copy root package files
-COPY package.json pnpm-lock.yaml ./
+# Copy package files and tsconfig
+COPY package.json pnpm-lock.yaml tsconfig.json ./
 COPY packages/backend/package.json ./packages/backend/
 
-# Install dependencies with frozen lockfile
+# Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copy the entire workspace for proper module resolution
-COPY . .
+# Copy backend source
+COPY packages/backend ./packages/backend
+
+# Clean and create dist directory
+RUN cd packages/backend && rm -rf dist && mkdir dist
 
 EXPOSE 4000
 
 WORKDIR /workspace/packages/backend
 
-# Start in development mode without trying to remove dist
-CMD ["sh", "-c", "rm -rf dist/* || true && nest start --watch"]
+CMD ["pnpm", "start:dev"]

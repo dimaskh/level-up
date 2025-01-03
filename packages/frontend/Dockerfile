@@ -5,17 +5,18 @@ WORKDIR /workspace
 # Install pnpm
 RUN npm install -g pnpm
 
-# Copy root package files
-COPY package.json pnpm-lock.yaml ./
+# Copy package files and tsconfig
+COPY package.json pnpm-lock.yaml tsconfig.json ./
 COPY packages/frontend/package.json ./packages/frontend/
 
 # Install dependencies
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
-# Copy the entire workspace for build configuration
-COPY . .
+# Copy frontend source
+COPY packages/frontend ./packages/frontend
 
 EXPOSE 5173
 
-# Use pnpm to run the dev server
-CMD ["sh", "-c", "cd packages/frontend && pnpm dev -- --host"]
+WORKDIR /workspace/packages/frontend
+
+CMD ["pnpm", "dev", "--", "--host"]
