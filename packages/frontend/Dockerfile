@@ -2,8 +2,8 @@ FROM node:20-slim
 
 WORKDIR /workspace
 
-# Install global dependencies
-RUN npm install -g pnpm vite
+# Install pnpm
+RUN npm install -g pnpm
 
 # Copy root package files
 COPY package.json pnpm-lock.yaml ./
@@ -12,7 +12,10 @@ COPY packages/frontend/package.json ./packages/frontend/
 # Install dependencies
 RUN pnpm install
 
+# Copy the entire workspace for build configuration
+COPY . .
+
 EXPOSE 5173
 
-# Use globally installed vite
-CMD ["vite", "--host"]
+# Use pnpm to run the dev server
+CMD ["sh", "-c", "cd packages/frontend && pnpm dev -- --host"]

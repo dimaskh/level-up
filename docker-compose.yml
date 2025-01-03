@@ -33,6 +33,7 @@ services:
       - .:/workspace
       - /workspace/node_modules
       - /workspace/packages/backend/node_modules
+      - backend-dist:/workspace/packages/backend/dist
     working_dir: /workspace/packages/backend
     depends_on:
       postgres:
@@ -44,6 +45,8 @@ services:
       context: .
       dockerfile: packages/frontend/Dockerfile
     container_name: level-up-frontend
+    environment:
+      - NODE_ENV=development
     ports:
       - "5173:5173"  # Default Vite port
     volumes:
@@ -57,3 +60,4 @@ services:
 
 volumes:
   level-up-data:
+  backend-dist:
