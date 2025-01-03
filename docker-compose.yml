@@ -35,6 +35,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health-check"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     command: pnpm start:dev
 
   frontend:
