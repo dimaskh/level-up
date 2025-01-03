@@ -31,24 +31,24 @@ const seedData = async () => {
     },
     {
       name: 'Mage',
-      description: 'A powerful spellcaster with mastery over arcane arts',
-      abilities: ['Fireball', 'Teleport', 'Arcane Shield'],
+      description: 'A powerful spellcaster with mastery over arcane forces',
+      abilities: ['Fireball', 'Frost Nova', 'Arcane Intellect'],
       startingStats: {
         strength: 6,
         agility: 8,
         intelligence: 18,
-        charisma: 12
+        charisma: 10
       }
     },
     {
       name: 'Rogue',
-      description: 'A cunning expert in stealth and precision',
+      description: 'A stealthy operative skilled in subterfuge and precision strikes',
       abilities: ['Stealth', 'Backstab', 'Pickpocket'],
       startingStats: {
         strength: 8,
         agility: 16,
-        intelligence: 12,
-        charisma: 10
+        intelligence: 10,
+        charisma: 12
       }
     }
   ]).returning();
@@ -57,9 +57,9 @@ const seedData = async () => {
   const heroes = await db.insert(schema.heroes).values([
     {
       email: 'warrior@levelup.com',
-      password: 'hashed_password_1', // In real app, use proper password hashing
+      password: 'password123', // In production, this should be hashed
       username: 'mightywarrior',
-      heroName: 'Thorgar the Brave',
+      heroName: 'Thorgrim',
       classId: classes[0].id,
       level: 5,
       xpPoints: 2500,
@@ -73,9 +73,9 @@ const seedData = async () => {
     },
     {
       email: 'mage@levelup.com',
-      password: 'hashed_password_2',
+      password: 'password123',
       username: 'archmage',
-      heroName: 'Elara the Wise',
+      heroName: 'Elara',
       classId: classes[1].id,
       level: 4,
       xpPoints: 2000,
@@ -84,68 +84,64 @@ const seedData = async () => {
         strength: 6,
         agility: 9,
         intelligence: 20,
-        charisma: 15
+        charisma: 12
       }
     }
   ]).returning();
 
-  // Quests
-  await db.insert(schema.quests).values([
+  // Items
+  const items = await db.insert(schema.items).values([
     {
-      heroId: heroes[0].id,
-      title: 'Defeat the Code Bug',
-      description: 'Track down and eliminate a notorious bug in the codebase',
-      type: 'daily',
-      difficulty: 'adept',
-      status: 'in_progress',
+      name: 'Steel Sword',
+      description: 'A well-crafted steel sword',
+      type: 'equipment',
+      rarity: 'common',
+      effects: {
+        stats: {
+          strength: 2
+        }
+      },
+      stackable: false
+    },
+    {
+      name: 'Health Potion',
+      description: 'Restores 50 health points',
+      type: 'consumable',
+      rarity: 'common',
+      effects: {
+        stats: {
+          health: 50
+        }
+      },
+      stackable: true
+    }
+  ]).returning();
+
+  // Achievements
+  const achievements = await db.insert(schema.achievements).values([
+    {
+      name: 'First Steps',
+      description: 'Complete your first quest',
+      type: 'quest',
+      requirements: {
+        quests: [],
+        level: 1
+      },
       rewards: {
         xp: 100,
         gold: 50
       }
     },
     {
-      heroId: heroes[1].id,
-      title: 'Refactor the Ancient Spells',
-      description: 'Modernize the legacy code without breaking existing functionality',
-      type: 'epic',
-      difficulty: 'master',
-      status: 'available',
+      name: 'Novice Adventurer',
+      description: 'Reach level 5',
+      type: 'quest',
+      requirements: {
+        level: 5
+      },
       rewards: {
         xp: 500,
         gold: 200
-      }
-    }
-  ]);
-
-  // Achievements
-  const achievements = await db.insert(schema.achievements).values([
-    {
-      name: 'First Quest',
-      description: 'Complete your first quest',
-      type: 'general',
-      tier: 'bronze',
-      hidden: false,
-      requirements: {
-        quests: ['any'],
-        other: { completedQuests: 1 }
-      },
-      rewards: {
-        xp: 50,
-        gold: 100
-      }
-    },
-    {
-      name: 'Bug Hunter',
-      description: 'Find and fix 10 bugs',
-      type: 'combat',
-      tier: 'silver',
-      hidden: false,
-      requirements: {
-        other: { bugsFixed: 10 }
-      },
-      rewards: {
-        xp: 200,
-        gold: 300
       }
     }
   ]).returning();
@@ -154,55 +150,49 @@ const seedData = async () => {
   await db.insert(schema.heroAchievements).values([
     {
       heroId: heroes[0].id,
-      achievementId: achievements[0].id,
-      progress: { completedQuests: 1 }
-    }
-  ]);
-
-  // Items
-  const items = await db.insert(schema.items).values([
-    {
-      name: 'Debugger\'s Sword',
-      description: 'A mighty sword that helps track down bugs',
-      type: 'equipment',
-      rarity: 'rare',
-      effects: {
-        stats: {
-          strength: 5,
-          intelligence: 3
-        }
-      },
-      stackable: false
+      achievementId: achievements[0].id
     },
     {
-      name: 'Energy Potion',
-      description: 'Restores energy during long coding sessions',
-      type: 'consumable',
-      rarity: 'common',
-      effects: {
-        stats: {
-          intelligence: 2
-        }
-      },
-      stackable: true
+      heroId: heroes[0].id,
+      achievementId: achievements[1].id
     }
-  ]).returning();
+  ]);
 
   // Hero Inventory
   await db.insert(schema.heroInventory).values([
     {
       heroId: heroes[0].id,
       itemId: items[0].id,
+      quantity: 1,
       equipped: true
     },
     {
-      heroId: heroes[1].id,
+      heroId: heroes[0].id,
       itemId: items[1].id,
-      quantity: 5
+      quantity: 5,
+      equipped: false
+    }
+  ]);
+
+  // Quests
+  await db.insert(schema.quests).values([
+    {
+      heroId: heroes[0].id,
+      title: 'Slay the Dragon',
+      description: 'A fearsome dragon threatens the village',
+      type: 'epic',
+      difficulty: 'legendary',
+      status: 'in_progress',
+      rewards: {
+        xp: 1000,
+        gold: 500,
+        items: [{ itemId: items[0].id, quantity: 1 }]
+      }
     }
   ]);
 
   console.log('✅ Database seeded successfully!');
+  
   await sql.end();
 };
 

@@ -43,6 +43,25 @@ services:
       start_period: 10s
     command: pnpm start:dev
 
+  drizzle-studio:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    container_name: level-up-drizzle-studio
+    environment:
+      - DATABASE_URL=postgres://levelup:levelup@postgres:5432/levelup
+    ports:
+      - "4466:4466"
+    volumes:
+      - ./packages/backend:/workspace/packages/backend
+      - ./tsconfig.json:/workspace/tsconfig.json
+      - /workspace/packages/backend/node_modules
+    working_dir: /workspace/packages/backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: pnpm db:studio
+
   frontend:
     build:
       context: .

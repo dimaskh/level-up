@@ -17,7 +17,7 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:push": "drizzle-kit push:pg",
     "db:seed": "tsx src/db/seed.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio --port 4466 --host 0.0.0.0"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",
@@ -27,6 +27,7 @@
     "@nestjs/swagger": "^7.1.17",
     "dotenv": "^16.3.1",
     "drizzle-orm": "^0.29.1",
+    "pg": "^8.11.3",
     "postgres": "^3.4.3",
     "reflect-metadata": "^0.1.14",
     "rxjs": "^7.8.1",

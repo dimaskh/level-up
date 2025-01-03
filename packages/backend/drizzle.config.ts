@@ -10,4 +10,6 @@ export default {
   dbCredentials: {
     connectionString: process.env.DATABASE_URL,
   },
+  strict: true,
+  verbose: true,
 } satisfies Config;

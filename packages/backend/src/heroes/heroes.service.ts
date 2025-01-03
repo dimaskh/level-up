@@ -24,6 +24,11 @@ export class HeroesService {
             achievement: true,
           },
         },
+        guildMemberships: {
+          with: {
+            guild: true,
+          },
+        },
       },
     });
   }
@@ -44,6 +49,11 @@ export class HeroesService {
             achievement: true,
           },
         },
+        guildMemberships: {
+          with: {
+            guild: true,
+          },
+        },
       },
     });
   }
@@ -61,9 +71,6 @@ export class HeroesService {
   }
 
   async remove(id: string) {
-    return this.db
-      .delete(schema.heroes)
-      .where(eq(schema.heroes.id, id))
-      .returning();
+    return this.db.delete(schema.heroes).where(eq(schema.heroes.id, id)).returning();
   }
 }

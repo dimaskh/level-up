@@ -1,20 +1,44 @@
 #!/bin/sh
 
-# Wait for database to be ready
-echo "Waiting for database to be ready..."
-while ! nc -z postgres 5432; do
-  sleep 0.1
-done
-echo "Database is ready!"
+set -e
 
-# Run migrations
-echo "Running database migrations..."
-pnpm db:migrate
+# Function to wait for postgres
+wait_for_postgres() {
+  echo "Waiting for database to be ready..."
+  while ! nc -z postgres 5432; do
+    sleep 1
+  done
+  # Additional wait to ensure Postgres is fully ready
+  sleep 2
+  echo "Database is ready!"
+}
 
-# Run seeds
-echo "Seeding database..."
-pnpm db:seed
+# Function to push schema
+push_schema() {
+  echo "Pushing database schema..."
+  pnpm db:push
+  if [ $? -ne 0 ]; then
+    echo "Schema push failed!"
+    exit 1
+  fi
+  echo "Schema push completed successfully!"
+}
 
-# Start the application
+# Function to run seeds
+run_seeds() {
+  echo "Seeding database..."
+  pnpm db:seed
+  if [ $? -ne 0 ]; then
+    echo "Seeding failed!"
+    exit 1
+  fi
+  echo "Database seeded successfully!"
+}
+
+# Main execution
+wait_for_postgres
+push_schema
+run_seeds
+
 echo "Starting the application..."
 exec pnpm start:dev

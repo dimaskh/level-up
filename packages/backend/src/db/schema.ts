@@ -105,7 +105,7 @@ export const heroInventory = pgTable('hero_inventory', {
   id: uuid('id').defaultRandom().primaryKey(),
   heroId: uuid('hero_id').notNull().references(() => heroes.id),
   itemId: uuid('item_id').notNull().references(() => items.id),
-  quantity: integer('quantity').default(1).notNull(),
+  quantity: integer('quantity').notNull().default(1),
   equipped: boolean('equipped').default(false).notNull(),
 });
 
@@ -147,25 +147,23 @@ export const heroSkills = pgTable('hero_skills', {
   unlockedAt: timestamp('unlocked_at').defaultNow().notNull(),
 });
 
-// Achievements (or Feats)
+// Achievements
 export const achievements = pgTable('achievements', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
   description: text('description').notNull(),
-  type: text('type').notNull(), // 'combat', 'exploration', 'social', 'crafting', etc.
-  tier: text('tier').notNull(), // 'bronze', 'silver', 'gold', 'legendary'
-  hidden: boolean('hidden').default(false).notNull(),
+  type: text('type').notNull(), // 'quest', 'combat', 'exploration', 'social', 'crafting'
   requirements: jsonb('requirements').$type<{
     quests?: string[],
-    items?: string[],
+    level?: number,
     stats?: Record<string, number>,
-    other?: Record<string, any>
-  }>().notNull(),
+    items?: string[],
+  }>(),
   rewards: jsonb('rewards').$type<{
-    xp: number,
-    gold: number,
-    items?: { itemId: string, quantity: number }[]
-  }>().notNull(),
+    xp?: number,
+    gold?: number,
+    items?: { itemId: string, quantity: number }[],
+  }>(),
 });
 
 // Hero Achievements
@@ -174,26 +172,62 @@ export const heroAchievements = pgTable('hero_achievements', {
   heroId: uuid('hero_id').notNull().references(() => heroes.id),
   achievementId: uuid('achievement_id').notNull().references(() => achievements.id),
   unlockedAt: timestamp('unlocked_at').defaultNow().notNull(),
-  progress: jsonb('progress').$type<Record<string, number>>(),
 });
 
 // Relations
-export const heroRelations = relations(heroes, ({ many, one }) => ({
+export const heroesRelations = relations(heroes, ({ many, one }) => ({
   quests: many(quests),
-  achievements: many(heroAchievements),
-  skills: many(heroSkills),
   inventory: many(heroInventory),
-  guilds: many(guildMembers),
   class: one(characterClasses, {
     fields: [heroes.classId],
     references: [characterClasses.id],
   }),
+  guildMemberships: many(guildMembers),
+  achievements: many(heroAchievements),
 }));
 
-export const questRelations = relations(quests, ({ one }) => ({
+export const characterClassesRelations = relations(characterClasses, ({ many }) => ({
+  heroes: many(heroes),
+}));
+
+export const questsRelations = relations(quests, ({ one }) => ({
   hero: one(heroes, {
     fields: [quests.heroId],
     references: [heroes.id],
+  }),
+}));
+
+export const itemsRelations = relations(items, ({ many }) => ({
+  inventory: many(heroInventory),
+}));
+
+export const heroInventoryRelations = relations(heroInventory, ({ one }) => ({
+  hero: one(heroes, {
+    fields: [heroInventory.heroId],
+    references: [heroes.id],
+  }),
+  item: one(items, {
+    fields: [heroInventory.itemId],
+    references: [items.id],
+  }),
+}));
+
+export const skillTreeRelations = relations(skillTrees, ({ many }) => ({
+  skills: many(skills),
+}));
+
+export const achievementsRelations = relations(achievements, ({ many }) => ({
+  heroes: many(heroAchievements),
+}));
+
+export const heroAchievementsRelations = relations(heroAchievements, ({ one }) => ({
+  hero: one(heroes, {
+    fields: [heroAchievements.heroId],
+    references: [heroes.id],
+  }),
+  achievement: one(achievements, {
+    fields: [heroAchievements.achievementId],
+    references: [achievements.id],
   }),
 }));
 
@@ -205,10 +239,13 @@ export const guildRelations = relations(guilds, ({ many, one }) => ({
   }),
 }));
 
-export const skillTreeRelations = relations(skillTrees, ({ many }) => ({
-  skills: many(skills),
-}));
-
-export const achievementRelations = relations(achievements, ({ many }) => ({
-  heroes: many(heroAchievements),
+export const guildMembersRelations = relations(guildMembers, ({ one }) => ({
+  guild: one(guilds, {
+    fields: [guildMembers.guildId],
+    references: [guilds.id],
+  }),
+  hero: one(heroes, {
+    fields: [guildMembers.heroId],
+    references: [heroes.id],
+  }),
 }));
