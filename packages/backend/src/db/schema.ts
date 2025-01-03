@@ -1,92 +1,214 @@
-import { pgTable, text, timestamp, uuid, integer, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, integer, boolean, jsonb } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-// Users table
-export const users = pgTable('users', {
+// Hero table (formerly Adventurer)
+export const heroes = pgTable('heroes', {
   id: uuid('id').defaultRandom().primaryKey(),
   email: text('email').notNull().unique(),
   password: text('password').notNull(),
-  name: text('name').notNull(),
+  username: text('username').notNull().unique(),
+  heroName: text('hero_name').notNull(),
+  classId: uuid('class_id').references(() => characterClasses.id),
+  level: integer('level').default(1).notNull(),
+  xpPoints: integer('xp_points').default(0).notNull(),
+  gold: integer('gold').default(0).notNull(),
+  stats: jsonb('stats').$type<{
+    strength: number,
+    agility: number,
+    intelligence: number,
+    charisma: number
+  }>().notNull().default({
+    strength: 10,
+    agility: 10,
+    intelligence: 10,
+    charisma: 10
+  }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-  xpPoints: integer('xp_points').default(0).notNull(),
-  level: integer('level').default(1).notNull(),
 });
 
-// Tasks table
-export const tasks = pgTable('tasks', {
+// Character Classes
+export const characterClasses = pgTable('character_classes', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').notNull().references(() => users.id),
+  name: text('name').notNull().unique(),
+  description: text('description').notNull(),
+  abilities: jsonb('abilities').$type<string[]>().notNull(),
+  startingStats: jsonb('starting_stats').$type<{
+    strength: number,
+    agility: number,
+    intelligence: number,
+    charisma: number
+  }>().notNull(),
+});
+
+// Guilds
+export const guilds = pgTable('guilds', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull().unique(),
+  description: text('description').notNull(),
+  leaderHeroId: uuid('leader_hero_id').notNull().references(() => heroes.id),
+  level: integer('level').default(1).notNull(),
+  xpPoints: integer('xp_points').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Guild Members
+export const guildMembers = pgTable('guild_members', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  guildId: uuid('guild_id').notNull().references(() => guilds.id),
+  heroId: uuid('hero_id').notNull().references(() => heroes.id),
+  role: text('role').notNull(), // 'member', 'officer', 'leader'
+  joinedAt: timestamp('joined_at').defaultNow().notNull(),
+});
+
+// Quests
+export const quests = pgTable('quests', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  heroId: uuid('hero_id').notNull().references(() => heroes.id),
   title: text('title').notNull(),
   description: text('description'),
-  priority: text('priority').notNull(), // 'low', 'medium', 'high'
-  dueDate: timestamp('due_date'),
-  status: text('status').notNull().default('todo'), // 'todo', 'in_progress', 'done'
-  xpValue: integer('xp_value').default(10).notNull(),
-  completed: boolean('completed').default(false).notNull(),
+  type: text('type').notNull(), // 'daily', 'weekly', 'epic'
+  difficulty: text('difficulty').notNull(), // 'novice', 'adept', 'expert', 'master', 'legendary'
+  status: text('status').notNull().default('available'), // 'available', 'in_progress', 'completed', 'failed'
+  rewards: jsonb('rewards').$type<{
+    xp: number,
+    gold: number,
+    items?: { itemId: string, quantity: number }[]
+  }>().notNull(),
+  prerequisites: jsonb('prerequisites').$type<{
+    quests?: string[],
+    level?: number,
+    stats?: Record<string, number>
+  }>(),
+  deadline: timestamp('deadline'),
+  completedAt: timestamp('completed_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Achievements table
-export const achievements = pgTable('achievements', {
+// Inventory Items
+export const items = pgTable('items', {
   id: uuid('id').defaultRandom().primaryKey(),
-  title: text('title').notNull(),
+  name: text('name').notNull(),
   description: text('description').notNull(),
-  requirement: text('requirement').notNull(),
-  xpValue: integer('xp_value').default(50).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  type: text('type').notNull(), // 'equipment', 'consumable', 'quest_item', 'collectible'
+  rarity: text('rarity').notNull(), // 'common', 'uncommon', 'rare', 'epic', 'legendary'
+  effects: jsonb('effects').$type<{
+    stats?: Record<string, number>,
+    abilities?: string[]
+  }>(),
+  stackable: boolean('stackable').default(false).notNull(),
 });
 
-// User Achievements (junction table)
-export const userAchievements = pgTable('user_achievements', {
+// Hero Inventory
+export const heroInventory = pgTable('hero_inventory', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').notNull().references(() => users.id),
-  achievementId: uuid('achievement_id').notNull().references(() => achievements.id),
+  heroId: uuid('hero_id').notNull().references(() => heroes.id),
+  itemId: uuid('item_id').notNull().references(() => items.id),
+  quantity: integer('quantity').default(1).notNull(),
+  equipped: boolean('equipped').default(false).notNull(),
+});
+
+// Skill Trees
+export const skillTrees = pgTable('skill_trees', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  category: text('category').notNull(), // 'combat', 'crafting', 'social', etc.
+  prerequisites: jsonb('prerequisites').$type<{
+    level?: number,
+    skills?: string[]
+  }>(),
+});
+
+// Skills
+export const skills = pgTable('skills', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  treeId: uuid('tree_id').notNull().references(() => skillTrees.id),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  level: integer('level').notNull(),
+  effects: jsonb('effects').$type<{
+    stats?: Record<string, number>,
+    abilities?: string[]
+  }>().notNull(),
+  cost: integer('cost').notNull(),
+  prerequisites: jsonb('prerequisites').$type<{
+    skills?: string[],
+    level?: number
+  }>(),
+});
+
+// Hero Skills
+export const heroSkills = pgTable('hero_skills', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  heroId: uuid('hero_id').notNull().references(() => heroes.id),
+  skillId: uuid('skill_id').notNull().references(() => skills.id),
   unlockedAt: timestamp('unlocked_at').defaultNow().notNull(),
 });
 
-// Learning Paths table
-export const learningPaths = pgTable('learning_paths', {
+// Achievements (or Feats)
+export const achievements = pgTable('achievements', {
   id: uuid('id').defaultRandom().primaryKey(),
-  title: text('title').notNull(),
+  name: text('name').notNull(),
   description: text('description').notNull(),
-  totalSteps: integer('total_steps').notNull(),
-  xpValue: integer('xp_value').default(100).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  type: text('type').notNull(), // 'combat', 'exploration', 'social', 'crafting', etc.
+  tier: text('tier').notNull(), // 'bronze', 'silver', 'gold', 'legendary'
+  hidden: boolean('hidden').default(false).notNull(),
+  requirements: jsonb('requirements').$type<{
+    quests?: string[],
+    items?: string[],
+    stats?: Record<string, number>,
+    other?: Record<string, any>
+  }>().notNull(),
+  rewards: jsonb('rewards').$type<{
+    xp: number,
+    gold: number,
+    items?: { itemId: string, quantity: number }[]
+  }>().notNull(),
 });
 
-// User Learning Progress table
-export const userLearningProgress = pgTable('user_learning_progress', {
+// Hero Achievements
+export const heroAchievements = pgTable('hero_achievements', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').notNull().references(() => users.id),
-  learningPathId: uuid('learning_path_id').notNull().references(() => learningPaths.id),
-  currentStep: integer('current_step').default(0).notNull(),
-  completed: boolean('completed').default(false).notNull(),
-  startedAt: timestamp('started_at').defaultNow().notNull(),
-  completedAt: timestamp('completed_at'),
+  heroId: uuid('hero_id').notNull().references(() => heroes.id),
+  achievementId: uuid('achievement_id').notNull().references(() => achievements.id),
+  unlockedAt: timestamp('unlocked_at').defaultNow().notNull(),
+  progress: jsonb('progress').$type<Record<string, number>>(),
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
-  tasks: many(tasks),
-  achievements: many(userAchievements),
-  learningProgress: many(userLearningProgress),
-}));
-
-export const tasksRelations = relations(tasks, ({ one }) => ({
-  user: one(users, {
-    fields: [tasks.userId],
-    references: [users.id],
+export const heroRelations = relations(heroes, ({ many, one }) => ({
+  quests: many(quests),
+  achievements: many(heroAchievements),
+  skills: many(heroSkills),
+  inventory: many(heroInventory),
+  guilds: many(guildMembers),
+  class: one(characterClasses, {
+    fields: [heroes.classId],
+    references: [characterClasses.id],
   }),
 }));
 
-export const achievementsRelations = relations(achievements, ({ many }) => ({
-  users: many(userAchievements),
+export const questRelations = relations(quests, ({ one }) => ({
+  hero: one(heroes, {
+    fields: [quests.heroId],
+    references: [heroes.id],
+  }),
 }));
 
-export const learningPathsRelations = relations(learningPaths, ({ many }) => ({
-  userProgress: many(userLearningProgress),
+export const guildRelations = relations(guilds, ({ many, one }) => ({
+  members: many(guildMembers),
+  leader: one(heroes, {
+    fields: [guilds.leaderHeroId],
+    references: [heroes.id],
+  }),
+}));
+
+export const skillTreeRelations = relations(skillTrees, ({ many }) => ({
+  skills: many(skills),
+}));
+
+export const achievementRelations = relations(achievements, ({ many }) => ({
+  heroes: many(heroAchievements),
 }));
