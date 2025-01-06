@@ -212,8 +212,15 @@ export const heroInventoryRelations = relations(heroInventory, ({ one }) => ({
   }),
 }));
 
-export const skillTreeRelations = relations(skillTrees, ({ many }) => ({
+export const skillTreesRelations = relations(skillTrees, ({ many }) => ({
   skills: many(skills),
+}));
+
+export const skillsRelations = relations(skills, ({ one }) => ({
+  skillTree: one(skillTrees, {
+    fields: [skills.treeId],
+    references: [skillTrees.id],
+  }),
 }));
 
 export const achievementsRelations = relations(achievements, ({ many }) => ({
