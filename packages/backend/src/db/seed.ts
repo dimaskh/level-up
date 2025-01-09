@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const seedData = async () => {
+export const seedData = async () => {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error('DATABASE_URL environment variable is not set');
@@ -28,7 +28,7 @@ const seedData = async () => {
         intelligence: 8,
         charisma: 12
       }
-    },
+    } as typeof schema.characterClasses.$inferInsert,
     {
       name: 'Mage',
       description: 'A powerful spellcaster with mastery over arcane forces',
@@ -39,7 +39,7 @@ const seedData = async () => {
         intelligence: 18,
         charisma: 10
       }
-    },
+    } as typeof schema.characterClasses.$inferInsert,
     {
       name: 'Rogue',
       description: 'A stealthy operative skilled in subterfuge and precision strikes',
@@ -50,7 +50,7 @@ const seedData = async () => {
         intelligence: 10,
         charisma: 12
       }
-    }
+    } as typeof schema.characterClasses.$inferInsert
   ]).returning();
 
   // Heroes
@@ -70,7 +70,7 @@ const seedData = async () => {
         intelligence: 8,
         charisma: 14
       }
-    },
+    } as typeof schema.heroes.$inferInsert,
     {
       email: 'mage@levelup.com',
       password: 'password123',
@@ -86,7 +86,7 @@ const seedData = async () => {
         intelligence: 20,
         charisma: 12
       }
-    }
+    } as typeof schema.heroes.$inferInsert
   ]).returning();
 
   // Items
@@ -102,7 +102,7 @@ const seedData = async () => {
         }
       },
       stackable: false
-    },
+    } as typeof schema.items.$inferInsert,
     {
       name: 'Health Potion',
       description: 'Restores 50 health points',
@@ -114,7 +114,7 @@ const seedData = async () => {
         }
       },
       stackable: true
-    }
+    } as typeof schema.items.$inferInsert
   ]).returning();
 
   // Achievements
@@ -131,7 +131,7 @@ const seedData = async () => {
         xp: 100,
         gold: 50
       }
-    },
+    } as typeof schema.achievements.$inferInsert,
     {
       name: 'Novice Adventurer',
       description: 'Reach level 5',
@@ -143,7 +143,7 @@ const seedData = async () => {
         xp: 500,
         gold: 200
       }
-    }
+    } as typeof schema.achievements.$inferInsert
   ]).returning();
 
   // Hero Achievements
@@ -151,11 +151,11 @@ const seedData = async () => {
     {
       heroId: heroes[0].id,
       achievementId: achievements[0].id
-    },
+    } as typeof schema.heroAchievements.$inferInsert,
     {
       heroId: heroes[0].id,
       achievementId: achievements[1].id
-    }
+    } as typeof schema.heroAchievements.$inferInsert
   ]);
 
   // Hero Inventory
@@ -165,13 +165,13 @@ const seedData = async () => {
       itemId: items[0].id,
       quantity: 1,
       equipped: true
-    },
+    } as typeof schema.heroInventory.$inferInsert,
     {
       heroId: heroes[0].id,
       itemId: items[1].id,
       quantity: 5,
       equipped: false
-    }
+    } as typeof schema.heroInventory.$inferInsert
   ]);
 
   // Quests
@@ -179,7 +179,6 @@ const seedData = async () => {
     {
       heroId: heroes[0].id,
       title: 'Slay the Dragon',
-      description: 'A fearsome dragon threatens the village',
       type: 'epic',
       difficulty: 'legendary',
       status: 'in_progress',
@@ -188,7 +187,7 @@ const seedData = async () => {
         gold: 500,
         items: [{ itemId: items[0].id, quantity: 1 }]
       }
-    }
+    } as typeof schema.quests.$inferInsert
   ]);
 
   console.log('✅ Database seeded successfully!');
@@ -196,7 +195,9 @@ const seedData = async () => {
   await sql.end();
 };
 
-seedData().catch((err) => {
-  console.error('Seeding failed:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  seedData().catch((err) => {
+    console.error('Seeding failed:', err);
+    process.exit(1);
+  });
+}

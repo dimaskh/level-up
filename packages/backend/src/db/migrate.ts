@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const runMigrations = async () => {
+export const runMigrations = async () => {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error('DATABASE_URL environment variable is not set');
@@ -23,7 +23,9 @@ const runMigrations = async () => {
   await sql.end();
 };
 
-runMigrations().catch((err) => {
-  console.error('Migration failed:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  runMigrations().catch((err) => {
+    console.error('Migration failed:', err);
+    process.exit(1);
+  });
+}
