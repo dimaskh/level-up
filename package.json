@@ -16,7 +16,10 @@
     "db:seed": "pnpm --filter @level-up/backend db:seed",
     "db:push": "pnpm --filter @level-up/backend db:push",
     "db:studio": "pnpm --filter @level-up/backend db:studio",
-    "start": "pnpm docker:up"
+    "start": "pnpm docker:up",
+    "test": "pnpm -r test:run",
+    "test:watch": "pnpm --parallel -r test",
+    "test:cov": "pnpm -r test:cov"
   },
   "devDependencies": {
     "turbo": "^1.11.2",
