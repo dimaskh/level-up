@@ -14,16 +14,8 @@ export class HeroesService {
       with: {
         class: true,
         quests: true,
-        inventory: {
-          with: {
-            item: true,
-          },
-        },
-        achievements: {
-          with: {
-            achievement: true,
-          },
-        },
+        inventory: true,
+        achievements: true,
       },
     });
   }
@@ -34,16 +26,8 @@ export class HeroesService {
       with: {
         class: true,
         quests: true,
-        inventory: {
-          with: {
-            item: true,
-          },
-        },
-        achievements: {
-          with: {
-            achievement: true,
-          },
-        },
+        inventory: true,
+        achievements: true,
       },
     });
   }

@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
-import { MainNav } from './main-nav'
-import { UserNav } from './user-nav'
-import { ThemeToggle } from './theme-toggle'
+import { Outlet } from "react-router-dom";
+import { Sidebar } from "./sidebar";
+import { Header } from "./header";
 
 interface LayoutProps {
   children: ReactNode
@@ -10,18 +10,15 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center justify-between">
-          <MainNav />
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <UserNav />
-          </div>
+      <div className="flex">
+        <Sidebar className="w-64 flex-shrink-0" />
+        <div className="flex-1">
+          <Header />
+          <main className="container py-6">
+            {children}
+          </main>
         </div>
-      </header>
-      <main className="container mx-auto py-6">
-        {children}
-      </main>
+      </div>
     </div>
   )
 }
