@@ -3,55 +3,51 @@ import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 
 interface TaskCardProps {
-  title: string
-  description: string
-  progress: number
-  priority: "low" | "medium" | "high"
-  dueDate?: string
-  className?: string
+  task: {
+    id: string
+    title: string
+    description: string
+    type: string
+    difficulty: string
+    status: string
+    rewards: {
+      xp: number
+      gold: number
+    }
+    createdAt: string
+    updatedAt: string
+  }
 }
 
-export function TaskCard({ 
-  title, 
-  description, 
-  progress, 
-  priority,
-  dueDate,
-  className 
-}: TaskCardProps) {
-  const priorityColors = {
-    low: "bg-green-500/20",
-    medium: "bg-yellow-500/20",
-    high: "bg-red-500/20"
+export function TaskCard({ task }: TaskCardProps) {
+  const difficultyColors = {
+    novice: "bg-green-100",
+    intermediate: "bg-yellow-100",
+    expert: "bg-red-100"
   }
 
   return (
-    <Card className={cn("hover:shadow-lg transition-shadow", className)}>
+    <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{title}</CardTitle>
+          <CardTitle className="text-lg">{task.title}</CardTitle>
           <span className={cn(
             "px-2 py-1 rounded-full text-xs font-medium",
-            priorityColors[priority]
+            difficultyColors[task.difficulty as keyof typeof difficultyColors]
           )}>
-            {priority}
+            {task.difficulty}
           </span>
         </div>
-        {dueDate && (
-          <CardDescription>
-            Due: {new Date(dueDate).toLocaleDateString()}
-          </CardDescription>
-        )}
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          <CardDescription>{description}</CardDescription>
+          <CardDescription>{task.description}</CardDescription>
           <div className="space-y-1">
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Progress</span>
-              <span>{progress}%</span>
+              <span>Type: {task.type}</span>
+              <span>Rewards: {task.rewards.xp} XP, {task.rewards.gold} Gold</span>
             </div>
-            <Progress value={progress} className="h-1" />
+            <Progress value={task.status === 'completed' ? 100 : 0} />
           </div>
         </div>
       </CardContent>
