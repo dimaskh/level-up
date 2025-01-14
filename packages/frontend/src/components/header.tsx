@@ -1,7 +1,7 @@
 import { Bell, Search } from "lucide-react";
+import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { ThemeToggle } from "./theme-toggle";
 import { UserNav } from "./user-nav";
 
 export function Header() {
@@ -13,10 +13,7 @@ export function Header() {
             <form className="flex-1 md:w-80">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search quests..."
-                  className="pl-8"
-                />
+                <Input placeholder="Search quests..." className="pl-8" />
               </div>
             </form>
           </div>
@@ -32,7 +29,13 @@ export function Header() {
             <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-600"></span>
           </Button>
           <ThemeToggle />
-          <UserNav />
+          <UserNav
+            user={{
+              heroName: "Hero",
+              level: 1,
+              xpPoints: 0,
+            }}
+          />
         </div>
       </div>
     </header>

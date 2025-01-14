@@ -1,5 +1,4 @@
 import { 
-  Routes, 
   Route,
   createRoutesFromElements,
   createBrowserRouter,
@@ -7,13 +6,9 @@ import {
 } from 'react-router-dom'
 import { Layout } from './components/layout'
 import { ThemeProvider } from './components/theme-provider'
-import DashboardPage from './pages/dashboard'
-import TasksPage from './pages/tasks'
-import LearningPage from './pages/learning'
-import AchievementsPage from './pages/achievements'
 import ProfilePage from './pages/profile'
 import SettingsPage from './pages/settings'
-import { startTransition, StrictMode, Suspense } from 'react'
+import { StrictMode, Suspense } from 'react'
 
 const routes = createRoutesFromElements(
   <Route element={<Layout />}>

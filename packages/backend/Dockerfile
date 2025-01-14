@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y \
 # Install pnpm
 RUN npm install -g pnpm
 
-# Copy package files
+# Copy workspace files
+COPY pnpm-workspace.yaml ./
 COPY package.json pnpm-lock.yaml ./
 COPY packages/backend/package.json ./packages/backend/
 

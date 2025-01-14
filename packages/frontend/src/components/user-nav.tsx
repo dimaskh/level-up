@@ -1,45 +1,26 @@
-import { Link } from "react-router-dom"
-import {
-  Cloud,
-  CreditCard,
-  Github,
-  Keyboard,
-  LifeBuoy,
-  LogOut,
-  Mail,
-  MessageSquare,
-  Plus,
-  PlusCircle,
-  Settings,
-  User,
-  UserPlus,
-  Users,
-} from "lucide-react"
+import { LogOut, Settings, User } from "lucide-react";
+import { Link } from "react-router-dom";
 
-import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+} from "@/components/ui/dropdown-menu";
 
 interface UserNavProps {
   user: {
-    heroName: string
-    level: number
-    xpPoints: number
-    gold: number
-  }
+    heroName: string;
+    level: number;
+    xpPoints: number;
+    gold: number;
+  };
 }
 
 export function UserNav({ user }: UserNavProps) {
@@ -87,5 +68,5 @@ export function UserNav({ user }: UserNavProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

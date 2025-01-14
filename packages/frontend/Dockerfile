@@ -5,7 +5,8 @@ WORKDIR /workspace
 # Install pnpm
 RUN npm install -g pnpm
 
-# Copy package files and tsconfig
+# Copy workspace files
+COPY pnpm-workspace.yaml ./
 COPY package.json pnpm-lock.yaml tsconfig.json ./
 COPY packages/frontend/package.json ./packages/frontend/
 
