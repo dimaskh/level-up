@@ -57,20 +57,20 @@ services:
       context: .
       dockerfile: packages/frontend/Dockerfile
     container_name: level-up-frontend
-    environment:
-      - NODE_ENV=development
     ports:
-      - "5173:5173"
+      - "3000:3000"
     volumes:
       - ./packages/frontend:/workspace/packages/frontend
-      - ./tsconfig.json:/workspace/tsconfig.json
       - /workspace/packages/frontend/node_modules
-    working_dir: /workspace/packages/frontend
-    command: pnpm dev
-    depends_on:
-      - backend
+      - /workspace/packages/frontend/.next
+    environment:
+      - NEXT_WEBPACK_USEPOLLING=1
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     networks:
       - level-up-network
+    depends_on:
+      - backend
 
 volumes:
   level-up-data:

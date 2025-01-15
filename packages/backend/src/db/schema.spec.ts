@@ -1,20 +1,28 @@
 import * as schema from './schema';
 
-describe('schema', () => {
-  describe('heroes', () => {
-    it('should have correct columns', () => {
+describe('Database Schema', () => {
+  describe('Heroes Table', () => {
+    it('should have required fields', () => {
       expect(schema.heroes.id).toBeDefined();
       expect(schema.heroes.email).toBeDefined();
       expect(schema.heroes.password).toBeDefined();
-      expect(schema.heroes.username).toBeDefined();
       expect(schema.heroes.heroName).toBeDefined();
-      expect(schema.heroes.classId).toBeDefined();
+      expect(schema.heroes.stats).toBeDefined();
       expect(schema.heroes.level).toBeDefined();
       expect(schema.heroes.xpPoints).toBeDefined();
       expect(schema.heroes.gold).toBeDefined();
-      expect(schema.heroes.stats).toBeDefined();
+      expect(schema.heroes.provider).toBeDefined();
+      expect(schema.heroes.providerId).toBeDefined();
+      expect(schema.heroes.refreshToken).toBeDefined();
+      expect(schema.heroes.refreshTokenExpiresAt).toBeDefined();
+      expect(schema.heroes.lastLoginAt).toBeDefined();
       expect(schema.heroes.createdAt).toBeDefined();
       expect(schema.heroes.updatedAt).toBeDefined();
+    });
+
+    it('should have unique constraints', () => {
+      expect(schema.heroes.email.isUnique).toBe(true);
+      expect(schema.heroes.heroName.isUnique).toBe(true);
     });
   });
 
@@ -123,10 +131,6 @@ describe('schema', () => {
   describe('relations', () => {
     it('should define heroes relations', () => {
       expect(schema.heroesRelations).toBeDefined();
-    });
-
-    it('should define character classes relations', () => {
-      expect(schema.characterClassesRelations).toBeDefined();
     });
 
     it('should define quests relations', () => {

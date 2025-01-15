@@ -1,21 +1,23 @@
 import { Module } from '@nestjs/common';
-import { PassportModule } from '@nestjs/passport';
+import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { AuthController } from './controllers/auth.controller';
+import { AuthService } from './services/auth.service';
+import { SocialAuthService } from './services/social-auth.service';
+import { DrizzleModule } from '../drizzle/drizzle.module';
 
 @Module({
   imports: [
-    PassportModule,
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '7d' },
-      }),
+    ConfigModule,
+    DrizzleModule,
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '1h' },
     }),
   ],
-  providers: [JwtStrategy],
-  exports: [JwtModule],
+  controllers: [AuthController],
+  providers: [AuthService, SocialAuthService],
+  exports: [AuthService],
 })
 export class AuthModule {}

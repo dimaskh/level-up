@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from '../db/schema';
@@ -12,7 +12,6 @@ export class HeroesService {
   async findAll() {
     return this.db.query.heroes.findMany({
       with: {
-        class: true,
         quests: true,
         inventory: true,
         achievements: true,
@@ -21,15 +20,20 @@ export class HeroesService {
   }
 
   async findOne(id: string) {
-    return this.db.query.heroes.findFirst({
+    const hero = await this.db.query.heroes.findFirst({
       where: eq(schema.heroes.id, id),
       with: {
-        class: true,
         quests: true,
         inventory: true,
         achievements: true,
       },
     });
+
+    if (!hero) {
+      throw new NotFoundException(`Hero with ID ${id} not found`);
+    }
+
+    return hero;
   }
 
   async create(data: typeof schema.heroes.$inferInsert) {

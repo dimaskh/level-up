@@ -7,35 +7,63 @@ import {
   text,
   timestamp,
   uuid,
+  varchar,
+  primaryKey,
+  index as dbIndex,
 } from "drizzle-orm/pg-core";
+import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
-export const heroes = pgTable("heroes", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  email: text("email").notNull().unique(),
-  password: text("password").notNull(),
-  username: text("username").notNull().unique(),
-  heroName: text("hero_name").notNull(),
-  classId: uuid("class_id").references(() => characterClasses.id),
-  level: integer("level").default(1).notNull(),
-  xpPoints: integer("xp_points").default(0).notNull(),
-  gold: integer("gold").default(0).notNull(),
-  stats: jsonb("stats")
-    .$type<{
-      strength: number;
-      agility: number;
-      intelligence: number;
-      charisma: number;
-    }>()
-    .notNull()
-    .default({
-      strength: 10,
-      agility: 10,
-      intelligence: 10,
-      charisma: 10,
-    }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const heroes = pgTable(
+  "heroes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    password: varchar("password", { length: 255 }).notNull(),
+    heroName: varchar("hero_name", { length: 255 }).notNull().unique(),
+    stats: jsonb("stats")
+      .$type<{
+        strength: number;
+        dexterity: number;
+        constitution: number;
+        intelligence: number;
+        wisdom: number;
+        charisma: number;
+      }>()
+      .default({
+        strength: 10,
+        dexterity: 10,
+        constitution: 10,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 10,
+      })
+      .notNull(),
+    level: integer("level").default(1).notNull(),
+    xpPoints: integer("xp_points").default(0).notNull(),
+    gold: integer("gold").default(0).notNull(),
+    provider: varchar("provider", { length: 50 }).default("local").notNull(),
+    providerId: varchar("provider_id", { length: 255 }),
+    refreshToken: varchar("refresh_token", { length: 255 }),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { mode: 'date' }),
+    lastLoginAt: timestamp("last_login_at", { mode: 'date' }),
+    createdAt: timestamp("created_at", { mode: 'date' }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: 'date' }).defaultNow().notNull(),
+  },
+  (table) => ({
+    emailIdx: dbIndex("heroes_email_idx").on(table.email),
+    heroNameIdx: dbIndex("heroes_hero_name_idx").on(table.heroName),
+    providerIdIdx: dbIndex("heroes_provider_id_idx").on(table.providerId),
+  })
+);
+
+export const heroesRelations = relations(heroes, ({ many }) => ({
+  quests: many(quests),
+  inventory: many(heroInventory),
+  achievements: many(heroAchievements),
+}));
+
+export type Hero = InferSelectModel<typeof heroes>;
+export type NewHero = InferInsertModel<typeof heroes>;
 
 export const characterClasses = pgTable("character_classes", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -52,7 +80,6 @@ export const characterClasses = pgTable("character_classes", {
     .notNull(),
 });
 
-// Quests
 export const quests = pgTable("quests", {
   id: uuid("id").defaultRandom().primaryKey(),
   heroId: uuid("hero_id")
@@ -60,9 +87,9 @@ export const quests = pgTable("quests", {
     .references(() => heroes.id),
   title: text("title").notNull(),
   description: text("description"),
-  type: text("type").notNull(), // 'daily', 'weekly', 'epic'
-  difficulty: text("difficulty").notNull(), // 'novice', 'adept', 'expert', 'master', 'legendary'
-  status: text("status").notNull().default("available"), // 'available', 'in_progress', 'completed', 'failed'
+  type: text("type").notNull(), 
+  difficulty: text("difficulty").notNull(), 
+  status: text("status").notNull().default("available"), 
   rewards: jsonb("rewards")
     .$type<{
       xp: number;
@@ -81,13 +108,12 @@ export const quests = pgTable("quests", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Inventory Items
 export const items = pgTable("items", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  type: text("type").notNull(), // 'equipment', 'consumable', 'quest_item', 'collectible'
-  rarity: text("rarity").notNull(), // 'common', 'uncommon', 'rare', 'epic', 'legendary'
+  type: text("type").notNull(), 
+  rarity: text("rarity").notNull(), 
   effects: jsonb("effects").$type<{
     stats?: Record<string, number>;
     abilities?: string[];
@@ -95,7 +121,6 @@ export const items = pgTable("items", {
   stackable: boolean("stackable").default(false).notNull(),
 });
 
-// Hero Inventory
 export const heroInventory = pgTable("hero_inventory", {
   id: uuid("id").defaultRandom().primaryKey(),
   heroId: uuid("hero_id")
@@ -108,19 +133,17 @@ export const heroInventory = pgTable("hero_inventory", {
   equipped: boolean("equipped").default(false).notNull(),
 });
 
-// Skill Trees
 export const skillTrees = pgTable("skill_trees", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  category: text("category").notNull(), // 'combat', 'crafting', 'social', etc.
+  category: text("category").notNull(), 
   prerequisites: jsonb("prerequisites").$type<{
     level?: number;
     skills?: string[];
   }>(),
 });
 
-// Skills
 export const skills = pgTable("skills", {
   id: uuid("id").defaultRandom().primaryKey(),
   treeId: uuid("tree_id")
@@ -142,7 +165,6 @@ export const skills = pgTable("skills", {
   }>(),
 });
 
-// Hero Skills
 export const heroSkills = pgTable("hero_skills", {
   id: uuid("id").defaultRandom().primaryKey(),
   heroId: uuid("hero_id")
@@ -154,12 +176,11 @@ export const heroSkills = pgTable("hero_skills", {
   unlockedAt: timestamp("unlocked_at").defaultNow().notNull(),
 });
 
-// Achievements
 export const achievements = pgTable("achievements", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  type: text("type").notNull(), // 'quest', 'combat', 'exploration', 'social', 'crafting'
+  type: text("type").notNull(), 
   requirements: jsonb("requirements").$type<{
     quests?: string[];
     level?: number;
@@ -173,7 +194,6 @@ export const achievements = pgTable("achievements", {
   }>(),
 });
 
-// Hero Achievements
 export const heroAchievements = pgTable("hero_achievements", {
   id: uuid("id").defaultRandom().primaryKey(),
   heroId: uuid("hero_id")
@@ -185,7 +205,6 @@ export const heroAchievements = pgTable("hero_achievements", {
   unlockedAt: timestamp("unlocked_at").defaultNow().notNull(),
 });
 
-// Settings
 export const settings = pgTable("settings", {
   id: uuid("id").defaultRandom().primaryKey(),
   heroId: uuid("hero_id").references(() => heroes.id).notNull(),
@@ -195,7 +214,6 @@ export const settings = pgTable("settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Tasks
 export const tasks = pgTable("tasks", {
   id: uuid("id").defaultRandom().primaryKey(),
   heroId: uuid("hero_id").references(() => heroes.id).notNull(),
@@ -206,29 +224,6 @@ export const tasks = pgTable("tasks", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
-
-// Relations
-export const heroesRelations = relations(heroes, ({ many, one }) => ({
-  quests: many(quests),
-  inventory: many(heroInventory),
-  class: one(characterClasses, {
-    fields: [heroes.classId],
-    references: [characterClasses.id],
-  }),
-  achievements: many(heroAchievements),
-  settings: one(settings, {
-    fields: [heroes.id],
-    references: [settings.heroId],
-  }),
-  tasks: many(tasks),
-}));
-
-export const characterClassesRelations = relations(
-  characterClasses,
-  ({ many }) => ({
-    heroes: many(heroes),
-  })
-);
 
 export const questsRelations = relations(quests, ({ one }) => ({
   hero: one(heroes, {

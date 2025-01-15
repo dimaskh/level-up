@@ -2,8 +2,11 @@ FROM node:20-slim
 
 WORKDIR /workspace
 
-# Install system dependencies
+# Install system dependencies required for bcrypt
 RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
     procps \
     netcat-traditional \
     curl \
@@ -14,7 +17,7 @@ RUN npm install -g pnpm
 
 # Copy workspace files
 COPY pnpm-workspace.yaml ./
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml tsconfig.json ./
 COPY packages/backend/package.json ./packages/backend/
 
 # Install dependencies with production flag to ensure all dependencies are installed
