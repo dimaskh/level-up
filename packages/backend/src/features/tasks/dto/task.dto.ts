@@ -19,32 +19,29 @@ export class CreateTaskDto {
   @IsString()
   description: string;
 
-  @IsEnum(TaskPriority)
-  priority: TaskPriority;
-
+  @IsEnum(TaskStatus)
   @IsOptional()
+  status?: TaskStatus = TaskStatus.TODO;
+
   @IsDateString()
-  dueDate?: string;
+  @IsOptional()
+  dueDate?: Date;
 }
 
 export class UpdateTaskDto {
-  @IsOptional()
   @IsString()
+  @IsOptional()
   title?: string;
 
-  @IsOptional()
   @IsString()
+  @IsOptional()
   description?: string;
 
-  @IsOptional()
-  @IsEnum(TaskPriority)
-  priority?: TaskPriority;
-
-  @IsOptional()
   @IsEnum(TaskStatus)
+  @IsOptional()
   status?: TaskStatus;
 
-  @IsOptional()
   @IsDateString()
-  dueDate?: string;
+  @IsOptional()
+  dueDate?: Date;
 }

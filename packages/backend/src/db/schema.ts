@@ -185,6 +185,28 @@ export const heroAchievements = pgTable("hero_achievements", {
   unlockedAt: timestamp("unlocked_at").defaultNow().notNull(),
 });
 
+// Settings
+export const settings = pgTable("settings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  heroId: uuid("hero_id").references(() => heroes.id).notNull(),
+  theme: text("theme").notNull().default("system"),
+  notifications: jsonb("notifications").notNull().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Tasks
+export const tasks = pgTable("tasks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  heroId: uuid("hero_id").references(() => heroes.id).notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  status: text("status").notNull().default("todo"),
+  dueDate: timestamp("due_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const heroesRelations = relations(heroes, ({ many, one }) => ({
   quests: many(quests),
@@ -194,6 +216,11 @@ export const heroesRelations = relations(heroes, ({ many, one }) => ({
     references: [characterClasses.id],
   }),
   achievements: many(heroAchievements),
+  settings: one(settings, {
+    fields: [heroes.id],
+    references: [settings.heroId],
+  }),
+  tasks: many(tasks),
 }));
 
 export const characterClassesRelations = relations(
@@ -253,3 +280,17 @@ export const heroAchievementsRelations = relations(
     }),
   })
 );
+
+export const settingsRelations = relations(settings, ({ one }) => ({
+  hero: one(heroes, {
+    fields: [settings.heroId],
+    references: [heroes.id],
+  }),
+}));
+
+export const tasksRelations = relations(tasks, ({ one }) => ({
+  hero: one(heroes, {
+    fields: [tasks.heroId],
+    references: [heroes.id],
+  }),
+}));

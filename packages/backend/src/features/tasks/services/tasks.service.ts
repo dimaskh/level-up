@@ -1,58 +1,115 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Task } from '../entities/task.entity';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { tasks } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
 import { CreateTaskDto, UpdateTaskDto } from '../dto/task.dto';
-import { PaginationParams, createPaginatedResponse, getPaginationOptions } from '../../../shared/utils/pagination';
+import { PaginationParams, getPaginationOptions } from '../../../shared/utils/pagination';
+import { DrizzleDatabase } from '../../../db/db.types';
 
 @Injectable()
 export class TasksService {
-  constructor(
-    @InjectRepository(Task)
-    private taskRepository: Repository<Task>,
-  ) {}
+  constructor(@Inject('DB') private readonly db: DrizzleDatabase) {}
 
-  async findAll(userId: string, params: PaginationParams) {
+  async findAll(heroId: string, params: PaginationParams) {
     const { skip, take } = getPaginationOptions(params);
-    const [items, total] = await this.taskRepository.findAndCount({
-      where: { user: { id: userId } },
-      order: { createdAt: 'DESC' },
-      skip,
-      take,
-    });
+    const [items, total] = await Promise.all([
+      this.db.query.tasks.findMany({
+        where: eq(tasks.heroId, heroId),
+        orderBy: (tasks) => [tasks.createdAt],
+        offset: skip,
+        limit: take,
+      }),
+      this.db.query.tasks.findMany({
+        where: eq(tasks.heroId, heroId),
+        columns: {
+          id: true,
+        },
+      }).then(rows => rows.length),
+    ]);
 
-    return createPaginatedResponse(items, total, params);
+    return {
+      items,
+      total,
+      page: params.page,
+      limit: params.limit,
+      totalPages: Math.ceil(total / take),
+    };
   }
 
-  async findOne(userId: string, id: string) {
-    const task = await this.taskRepository.findOne({
-      where: { id, user: { id: userId } },
+  async findOne(heroId: string, id: string) {
+    const [result] = await this.db.query.tasks.findMany({
+      where: eq(tasks.id, id),
+      limit: 1,
     });
-
-    if (!task) {
+    
+    if (!result) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
     }
-
-    return task;
+    
+    return result;
   }
 
-  async create(userId: string, createTaskDto: CreateTaskDto) {
-    const task = this.taskRepository.create({
-      ...createTaskDto,
-      user: { id: userId },
-    });
+  async create(heroId: string, createTaskDto: CreateTaskDto) {
+    const insertData: any = {
+      heroId,
+      title: createTaskDto.title,
+      description: createTaskDto.description,
+    };
 
-    return this.taskRepository.save(task);
+    if (createTaskDto.status) {
+      insertData.status = createTaskDto.status;
+    }
+
+    if (createTaskDto.dueDate) {
+      insertData.dueDate = createTaskDto.dueDate;
+    }
+
+    const [result] = await this.db
+      .insert(tasks)
+      .values(insertData)
+      .returning();
+    return result;
   }
 
-  async update(userId: string, id: string, updateTaskDto: UpdateTaskDto) {
-    const task = await this.findOne(userId, id);
-    Object.assign(task, updateTaskDto);
-    return this.taskRepository.save(task);
+  async update(heroId: string, id: string, updateTaskDto: UpdateTaskDto) {
+    const updateData: any = {};
+
+    if (updateTaskDto.title) {
+      updateData.title = updateTaskDto.title;
+    }
+    if (updateTaskDto.description) {
+      updateData.description = updateTaskDto.description;
+    }
+    if (updateTaskDto.status) {
+      updateData.status = updateTaskDto.status;
+    }
+    if (updateTaskDto.dueDate) {
+      updateData.dueDate = updateTaskDto.dueDate;
+    }
+    updateData.updatedAt = new Date();
+
+    const [result] = await this.db
+      .update(tasks)
+      .set(updateData)
+      .where(eq(tasks.id, id))
+      .returning();
+    
+    if (!result) {
+      throw new NotFoundException(`Task with ID "${id}" not found`);
+    }
+    
+    return result;
   }
 
-  async remove(userId: string, id: string) {
-    const task = await this.findOne(userId, id);
-    await this.taskRepository.remove(task);
+  async remove(heroId: string, id: string) {
+    const [result] = await this.db
+      .delete(tasks)
+      .where(eq(tasks.id, id))
+      .returning();
+    
+    if (!result) {
+      throw new NotFoundException(`Task with ID "${id}" not found`);
+    }
+    
+    return result;
   }
 }

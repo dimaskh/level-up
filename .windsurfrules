@@ -1,1 +1,4 @@
 1. We use pnpm as the package manager
+2. We use Drizzle as the ORM
+3. We use TypeScript as the language
+4. We use PostgreSQL as the database
